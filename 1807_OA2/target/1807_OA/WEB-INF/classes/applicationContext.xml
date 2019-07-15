@@ -1,0 +1,72 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+         http://www.springframework.org/schema/data/jpa
+     	http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+
+	<context:component-scan base-package="com.qf"
+		use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Repository" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+
+	<!-- 1.加载属性文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<!-- 2.数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="driverClass" value="${jdbc.driverClass}" />
+	</bean>
+
+	<!-- 3.sessionFactory -->
+	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.qf.entity" />
+		<property name="mapperLocations" value="classpath:com/qf/mapper/*.xml"></property>
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+	</bean>
+
+	<!-- 自动创建Dao层实现类(代理) -->
+	<bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 设置Dao层接口名称 -->
+		<property name="basePackage" value="com.qf.dao" />
+
+		<!-- 设置SessionFactory名字 -->
+		<property name="sqlSessionFactoryBeanName" value="sessionFactory" />
+	</bean>
+
+	<!-- 事务管理器 -->
+	<bean id="tx"  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 事务的属性 -->
+	<tx:advice id="txAdives" transaction-manager="tx">
+		<tx:attributes>
+			<tx:method name="get*" isolation="DEFAULT" propagation="REQUIRED" read-only="true"/>
+			<tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+			<tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+			<tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- AOP的配置 -->
+	<aop:config>
+		<aop:advisor advice-ref="txAdives" pointcut="execution( * com.qf.service.*.*(..))"/>
+	</aop:config>
+</beans>

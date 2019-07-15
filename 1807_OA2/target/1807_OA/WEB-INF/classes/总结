@@ -1,0 +1,18 @@
+
+
+1.自动创建Dao层实现类(代理)
+	a)org.mybatis.spring.mapper.MapperScannerConfigurer
+		1)Dao层接口的名称
+		2)sesionFactoryBeanName
+		
+		
+2.Maven命令
+	a)mvn compile
+	b)mvn clean
+	c)mvn test
+	d)mnn package
+	e)mvn install
+2.Maven和Eclipse整合
+	a)编译和启动项目都有用Maven
+3.MyBatis自动插件Dao层实现类
+4.MyBatis的插件
